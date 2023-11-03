@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'payments',
     'django_filters',
     'rest_framework_simplejwt',
+    'subscription',
 ]
 
 MIDDLEWARE = [
