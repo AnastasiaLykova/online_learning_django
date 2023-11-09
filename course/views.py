@@ -6,6 +6,9 @@ from course.permissions import IsCreator, IsModerator
 from course.serializers import CourseSerializer, LessonSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
+from course.tasks import send_course_update_notification
+from subscription.models import Subscription
+
 
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
@@ -27,6 +30,14 @@ class CourseViewSet(viewsets.ModelViewSet):
         new_course = serializer.save()
         new_course.creator = self.request.user
         new_course.save()
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        course_name = instance.name
+        subscriptions = Subscription.objects.filter(user=request.user)
+        list_emails = [subscription.user.email for subscription in subscriptions]
+        send_course_update_notification(list_emails, course_name)
+        return super().update(request, *args, **kwargs)
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
